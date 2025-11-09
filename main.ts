@@ -76,6 +76,32 @@ function getVerifyFilePath(verifyCode: string): string {
   return `/tmp/vps-feeding-verify-${verifyCode}.txt`;
 }
 
+// IP 地址验证函数
+function isValidIPv4(ip: string): boolean {
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  if (!ipv4Regex.test(ip)) return false;
+
+  const parts = ip.split('.');
+  return parts.every(part => {
+    const num = parseInt(part, 10);
+    return num >= 0 && num <= 255;
+  });
+}
+
+function isValidIPv6(ip: string): boolean {
+  // 移除方括号（如果存在）
+  const cleanIp = ip.replace(/^\[|\]$/g, '');
+
+  // IPv6 正则表达式（支持完整格式和缩写格式）
+  const ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/;
+
+  return ipv6Regex.test(cleanIp);
+}
+
+function isValidIP(ip: string): boolean {
+  return isValidIPv4(ip) || isValidIPv6(ip);
+}
+
 // 检查SSH指纹是否已存在（防止重复投喂）
 async function checkSSHFingerprintExists(fingerprint: string): Promise<boolean> {
   const result = await kv.get(['ssh_fingerprints', fingerprint]);
@@ -119,10 +145,17 @@ async function verifyVPSBySSH(vps: VPSServer): Promise<{ success: boolean; finge
   }
 }
 
-// 简单的端口可达性检测
+// 简单的端口可达性检测（支持 IPv4 和 IPv6）
 async function checkPortReachable(ip: string, port: number): Promise<boolean> {
   try {
-    const conn = await Deno.connect({ hostname: ip, port, transport: 'tcp' });
+    // 清理 IPv6 地址（移除方括号，如果有的话）
+    const cleanIp = ip.replace(/^\[|\]$/g, '');
+
+    const conn = await Deno.connect({
+      hostname: cleanIp,
+      port,
+      transport: 'tcp'
+    });
     conn.close();
     return true;
   } catch {
@@ -566,11 +599,10 @@ app.post('/api/donate', requireAuth, async (c) => {
     return c.json({ success: false, message: '密钥认证需要提供私钥' }, 400);
   }
 
-  // 验证 IP 格式
-  const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-  if (!ipRegex.test(ip)) {
+  // 验证 IP 格式（支持 IPv4 和 IPv6）
+  if (!isValidIP(ip)) {
     console.log(`[Donate] 验证失败：IP格式不正确 - ${ip}`);
-    return c.json({ success: false, message: 'IP 地址格式不正确' }, 400);
+    return c.json({ success: false, message: 'IP 地址格式不正确（支持 IPv4 和 IPv6）' }, 400);
   }
 
   // 验证端口范围
@@ -1154,7 +1186,7 @@ function generateDonateHTML(clientId: string): string {
         <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-sm font-semibold text-slate-700 mb-1.5">服务器 IP *</label>
-            <input id="ipInput" type="text" placeholder="192.168.1.100"
+            <input id="ipInput" type="text" placeholder="192.168.1.100 或 2001:db8::1"
               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm">
           </div>
           <div>
