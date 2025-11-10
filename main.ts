@@ -794,52 +794,75 @@ app.get('/donate', c => {
   const head = commonHead('风萧萧公益机场 · VPS 投喂榜');
   const html = `<!doctype html><html lang="zh-CN"><head>${head}</head>
 <body class="min-h-screen" data-theme="dark">
-<div class="max-w-5xl mx-auto px-4 py-8">
+<div class="max-w-6xl mx-auto px-4 py-6 md:py-10">
 
-  <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <div class="space-y-2">
-      <h1 class="grad-title text-2xl md:text-4xl font-bold">风萧萧公益机场 · VPS 投喂榜</h1>
+  <header class="mb-8 animate-in">
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+      <div class="flex-1 space-y-4">
+        <h1 class="grad-title text-3xl md:text-5xl font-bold leading-tight">
+          风萧萧公益机场 · VPS 投喂榜
+        </h1>
 
-      <p class="mt-1 text-sm sm:text-base leading-relaxed">
-        <span class="muted">这是一个完全非盈利的公益项目，目前没有运营团队，由我独自维护。</span><br>
-        同时也非常感谢以下几位佬的日常协助：
-        <a href="https://linux.do/u/shklrt" target="_blank" class="text-cyan-300 hover:text-cyan-200 font-semibold">@shklrt</a>、
-        <a href="https://linux.do/u/sar60677" target="_blank" class="text-cyan-300 hover:text-cyan-200 font-semibold">@sar60677</a>、
-        <a href="https://linux.do/u/carrydelahaye" target="_blank" class="text-cyan-300 hover:text-cyan-200 font-semibold">@Carry&nbsp;Delahaye</a>。
-        榜单按投喂 VPS 数量排序，
-        <span class="font-semibold text-amber-300">
-          但无论名次高低，您的每一次支持，对我和这个项目来说都弥足珍贵，衷心感谢！
-        </span>
-      </p>
+        <div class="panel rounded-2xl border p-5 space-y-3 backdrop-blur-sm">
+          <p class="text-sm leading-relaxed">
+            <span class="muted">这是一个完全非盈利的公益项目，目前没有运营团队，由我独自维护。</span><br>
+            同时也非常感谢以下几位佬的日常协助：
+            <a href="https://linux.do/u/shklrt" target="_blank"
+               class="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">@shklrt</a>、
+            <a href="https://linux.do/u/sar60677" target="_blank"
+               class="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">@sar60677</a>、
+            <a href="https://linux.do/u/carrydelahaye" target="_blank"
+               class="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors">@Carry&nbsp;Delahaye</a>。
+          </p>
 
-      <p class="text-xs sm:text-sm text-amber-200 leading-relaxed mt-2">
-        感谢大家的投喂，🤝 这个机场的发展离不开各位热佬的大力支持！
-        这不是我一个人的功劳，而是大家的共同成果！共荣！🚀🤝
-      </p>
+          <p class="text-sm leading-relaxed bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
+            <span class="font-semibold text-amber-300">💝 榜单按投喂 VPS 数量排序，</span>
+            但无论名次高低，您的每一次支持，对我和这个项目来说都弥足珍贵，衷心感谢！
+          </p>
 
-      <button onclick="gotoDonatePage()" 
-        class="mt-3 inline-flex items-center gap-2 rounded-xl bg-cyan-500 px-4 py-2 
-               text-sm font-semibold shadow-lg hover:bg-cyan-400 transition">
-        🧡 我要投喂 VPS
-      </button>
-    </div>
+          <p class="text-xs text-amber-200/90 leading-relaxed flex items-start gap-2">
+            <span class="text-base mt-0.5">🤝</span>
+            <span>感谢大家的投喂，这个机场的发展离不开各位热佬的大力支持！这不是我一个人的功劳，而是大家的共同成果！共荣！🚀</span>
+          </p>
+        </div>
 
-    <div class="flex sm:flex-col items-center sm:items-end gap-2">
-      <button id="theme-toggle" class="text-xs" onclick="toggleTheme()">浅色模式</button>
+        <div class="flex flex-wrap items-center gap-3">
+          <button onclick="gotoDonatePage()"
+            class="inline-flex items-center justify-center gap-2 rounded-xl
+                   bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3
+                   text-sm font-bold shadow-xl hover:shadow-2xl
+                   hover:scale-[1.02] transition-all duration-200
+                   hover:from-cyan-400 hover:to-blue-400">
+            <span class="text-lg">🧡</span> 我要投喂 VPS
+          </button>
+          <button id="theme-toggle" class="text-xs" onclick="toggleTheme()">浅色模式</button>
+        </div>
+      </div>
     </div>
   </header>
 
   <section class="mb-6">
-    <h2 class="text-xl font-semibold mb-3 flex items-center gap-2">
-      🏆 捐赠榜单 <span id="leaderboard-count" class="text-sm muted"></span>
-    </h2>
+    <div class="flex items-center gap-3 mb-4">
+      <span class="text-2xl">🏆</span>
+      <h2 class="text-2xl font-bold">捐赠榜单</h2>
+      <span id="leaderboard-count" class="text-sm muted"></span>
+    </div>
+    
     <div id="leaderboard" class="space-y-4">
-      <div class="muted text-sm">正在加载榜单...</div>
+      <div class="flex items-center justify-center py-12">
+        <div class="flex flex-col items-center gap-3">
+          <div class="loading-spinner"></div>
+          <div class="muted text-sm">正在加载榜单...</div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <footer class="mt-10 border-t border-slate-800 pt-4 text-xs muted">
-    <p>说明：本项目仅作公益用途，请勿滥用资源（长时间占满带宽、刷流量、倒卖账号等）。</p>
+  <footer class="mt-12 border-t border-slate-700/50 pt-6 text-xs muted text-center">
+    <p class="flex items-center justify-center gap-2">
+      <span class="text-base">ℹ️</span>
+      <span>说明：本项目仅作公益用途，请勿滥用资源（长时间占满带宽、刷流量、倒卖账号等）。</span>
+    </p>
   </footer>
 
 </div>
@@ -907,28 +930,38 @@ async function loadLeaderboard(){
     box.innerHTML='';
     data.forEach((it,idx)=>{
       const wrap=document.createElement('div');
-      wrap.className='card rounded-2xl border p-4 shadow-sm';
+      wrap.className='card rounded-2xl border p-5 shadow-lg hover:shadow-xl transition-all';
 
       const head=document.createElement('div');
-      head.className='flex items-center justify-between mb-2 gap-2';
-      head.innerHTML='<div class="flex items-center gap-2 flex-1 min-w-0"><span style="font-size:18px">'+medalByRank(idx)+'</span>'+
-      '<a class="font-semibold text-sky-300 hover:text-cyan-300 truncate" target="_blank" href="https://linux.do/u/'+encodeURIComponent(it.username)+'">@'+it.username+'</a></div>'+
-      '<div class="muted text-xs whitespace-nowrap">共投喂 '+it.count+' 台 VPS</div>';
+      head.className='flex items-center justify-between mb-4 pb-3 border-b border-slate-700/30 gap-3';
+      head.innerHTML='<div class="flex items-center gap-3 flex-1 min-w-0">'+
+        '<span class="text-2xl flex-shrink-0">'+medalByRank(idx)+'</span>'+
+        '<a class="font-bold text-lg text-sky-400 hover:text-cyan-300 truncate transition-colors" target="_blank" href="https://linux.do/u/'+encodeURIComponent(it.username)+'">@'+it.username+'</a>'+
+        '</div>'+
+        '<div class="flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-full px-3 py-1.5 whitespace-nowrap">'+
+          '<span class="text-cyan-400 font-bold text-sm">'+it.count+'</span>'+
+          '<span class="text-xs muted">台 VPS</span>'+
+        '</div>';
       wrap.appendChild(head);
 
       const list=document.createElement('div');
-      list.className='space-y-2 text-xs';
+      list.className='space-y-3 text-xs';
       (it.servers||[]).forEach(srv=>{
         const d=document.createElement('div');
-        d.className='rounded-xl border px-3 py-2';
-        d.innerHTML = '<div class="flex items-center justify-between gap-2">'+
-          '<span class="text-slate-100 text-xs truncate">'+(srv.country||'未填写')+(srv.ipLocation?' · '+srv.ipLocation:'')+'</span>'+
-          '<span class="'+statusCls(srv.status)+' text-[11px]">'+statusText(srv.status)+'</span></div>'+
-          '<div class="flex flex-wrap gap-x-4 gap-y-1 text-[11px] mt-1">'+
-          '<span>流量/带宽：'+(srv.traffic||'未填写')+'</span>'+
-          '<span>到期：'+(srv.expiryDate||'未填写')+'</span></div>'+
-          (srv.specs?'<div class="text-[11px] muted mt-1 break-words">配置：'+srv.specs+'</div>':'')+
-          (srv.note?'<div class="text-[11px] text-amber-300/90 mt-1 break-words">投喂备注：'+srv.note+'</div>':'');
+        d.className='rounded-xl border border-slate-700/50 bg-slate-800/30 px-4 py-3 hover:bg-slate-800/50 transition-all';
+        d.innerHTML = '<div class="flex items-center justify-between gap-2 mb-2">'+
+          '<div class="flex items-center gap-2 flex-1 min-w-0">'+
+            '<span class="opacity-60">🌍</span>'+
+            '<span class="text-sm font-medium truncate">'+(srv.country||'未填写')+(srv.ipLocation?' · '+srv.ipLocation:'')+'</span>'+
+          '</div>'+
+          '<span class="'+statusCls(srv.status)+' text-xs px-2 py-0.5 rounded-full">'+statusText(srv.status)+'</span>'+
+        '</div>'+
+        '<div class="grid grid-cols-2 gap-2 text-xs mt-2">'+
+          '<div class="flex items-center gap-1.5"><span class="opacity-60">📊</span><span class="truncate">'+(srv.traffic||'未填写')+'</span></div>'+
+          '<div class="flex items-center gap-1.5"><span class="opacity-60">📅</span><span class="truncate">'+(srv.expiryDate||'未填写')+'</span></div>'+
+        '</div>'+
+        (srv.specs?'<div class="text-xs muted mt-2 bg-slate-900/40 rounded-lg px-2 py-1.5 break-words flex items-start gap-1.5"><span class="opacity-60">⚙️</span><span>'+srv.specs+'</span></div>':'')+
+        (srv.note?'<div class="text-xs text-amber-300/90 mt-2 bg-amber-500/5 border border-amber-500/20 rounded-lg px-2 py-1.5 break-words flex items-start gap-1.5"><span class="opacity-60">💬</span><span>'+srv.note+'</span></div>':'');
         list.appendChild(d);
       });
       wrap.appendChild(list);
@@ -1284,9 +1317,14 @@ loadDonations();
 app.get('/admin', c => {
   const head = commonHead('VPS 管理后台');
   const html = `<!doctype html><html lang="zh-CN"><head>${head}</head>
-<body class="min-h-screen" data-theme="dark">
+<body class="min-h-screen">
 <div class="max-w-7xl mx-auto px-4 py-8" id="app-root">
-  <div class="muted text-sm">正在检测管理员登录状态...</div>
+  <div class="flex items-center justify-center min-h-[60vh]">
+    <div class="text-center space-y-3">
+      <div class="loading-spinner mx-auto"></div>
+      <div class="text-sm text-slate-600">正在检测管理员登录状态...</div>
+    </div>
+  </div>
 </div>
 <div id="toast-root"></div>
 <script>
@@ -1341,13 +1379,28 @@ async function checkAdmin(){
 function renderLogin(root){
   root.innerHTML='';
   const wrap=document.createElement('div');
-  wrap.className='panel max-w-sm mx-auto rounded-2xl border p-6 shadow-lg';
-  wrap.innerHTML='<h1 class="text-xl font-semibold mb-4">管理员登录</h1>'+
-    '<p class="text-xs muted mb-4">请输入管理员密码。</p>'+
-    '<form id="admin-login-form" class="space-y-3 text-sm">'+
-      '<div><label class="block mb-1 text-xs">密码</label><input type="password" name="password" class="w-full rounded-lg border px-3 py-2 text-xs focus:ring-1 focus:ring-cyan-500"/></div>'+
-      '<div id="admin-login-msg" class="text-[11px] h-4"></div>'+
-      '<button type="submit" class="mt-1 inline-flex items-center justify-center rounded-xl bg-cyan-500 px-4 py-2 text-xs font-semibold hover:bg-cyan-400">登录</button>'+
+  wrap.className='panel max-w-md mx-auto rounded-2xl border p-8 shadow-xl animate-in';
+  wrap.innerHTML='<div class="text-center mb-6">'+
+    '<div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 mb-4">'+
+      '<span class="text-3xl">🔐</span>'+
+    '</div>'+
+    '<h1 class="text-2xl font-bold mb-2">管理员登录</h1>'+
+    '<p class="text-sm muted">请输入管理员密码以继续</p>'+
+  '</div>'+
+    '<form id="admin-login-form" class="space-y-4">'+
+      '<div>'+
+        '<label class="block mb-2 text-sm font-medium flex items-center gap-2">'+
+          '<span>🔑</span> 密码'+
+        '</label>'+
+        '<input type="password" name="password" placeholder="请输入管理员密码" '+
+               'class="w-full rounded-lg border px-4 py-3 text-sm focus:ring-2 focus:ring-cyan-500"/>'+
+      '</div>'+
+      '<div id="admin-login-msg" class="text-sm min-h-[1.5rem] font-medium"></div>'+
+      '<button type="submit" class="w-full inline-flex items-center justify-center gap-2 rounded-xl '+
+                                    'bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-3 text-sm font-bold '+
+                                    'shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200">'+
+        '<span class="text-lg">🚀</span> 登录'+
+      '</button>'+
     '</form>';
   root.appendChild(wrap);
   document.getElementById('admin-login-form').addEventListener('submit', async(e)=>{
@@ -1379,9 +1432,32 @@ function renderLogin(root){
 async function renderAdmin(root, name){
   root.innerHTML='';
   const header=document.createElement('header');
-  header.className='mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between';
-  header.innerHTML='<div><h1 class="grad-title text-2xl md:text-3xl font-bold">VPS 管理后台</h1><p class="mt-2 text-xs muted">仅管理员可见，可查看全部投喂 VPS 与认证信息。</p></div>'+
-    '<div class="flex items-center gap-3"><span class="text-xs">管理员：'+name+'</span><button id="theme-toggle" class="text-[11px] rounded-full border px-2 py-1 mr-1">浅色模式</button><button id="btn-admin-logout" class="text-[11px] rounded-full border px-2 py-1">退出</button></div>';
+  header.className='mb-8 animate-in';
+  header.innerHTML='<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">'+
+    '<div class="space-y-3">'+
+      '<div class="flex items-center gap-3">'+
+        '<div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500">'+
+          '<span class="text-2xl">⚙️</span>'+
+        '</div>'+
+        '<h1 class="grad-title text-3xl md:text-4xl font-bold">VPS 管理后台</h1>'+
+      '</div>'+
+      '<p class="text-sm muted flex items-center gap-2 ml-15">'+
+        '<span class="text-base">🔒</span>'+
+        '<span>仅管理员可见，可查看全部投喂 VPS 与认证信息</span>'+
+      '</p>'+
+    '</div>'+
+    '<div class="flex flex-wrap items-center gap-3">'+
+      '<div class="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-full px-4 py-2 border">'+
+        '<span class="text-sm">👤</span>'+
+        '<span class="text-sm font-medium">'+name+'</span>'+
+      '</div>'+
+      '<button id="theme-toggle" class="text-xs" onclick="toggleTheme()">浅色模式</button>'+
+      '<button id="btn-admin-logout" class="text-xs rounded-full border border-slate-300 hover:border-red-400 px-4 py-2 '+
+                                      'transition-all hover:bg-red-500/10 hover:text-red-500">'+
+        '退出登录'+
+      '</button>'+
+    '</div>'+
+  '</div>';
   root.appendChild(header);
   updateThemeBtn();
   document.getElementById('theme-toggle').addEventListener('click',toggleTheme);
@@ -1396,28 +1472,71 @@ async function renderAdmin(root, name){
 
   const cfg=document.createElement('section');
   cfg.id='admin-config';
-  cfg.className='mt-4';
+  cfg.className='mt-6 space-y-4';
   cfg.innerHTML=
-  '<div class="panel rounded-2xl border p-4 mb-4">'+
-    '<div class="flex items-center justify-between"><h2 class="text-sm font-semibold">OAuth 配置</h2>'+
-    '<button id="btn-toggle-oauth" class="text-[11px] rounded-full border px-2 py-1">展开</button></div>'+
-    '<div id="oauth-body" class="mt-3 hidden">'+
-      '<form id="oauth-form" class="grid md:grid-cols-3 gap-3 text-[11px]">'+
-        '<div><label class="block mb-1 muted text-xs">Client ID</label><input name="clientId" class="w-full rounded-lg border px-2 py-1 text-xs focus:ring-1 focus:ring-cyan-500"/></div>'+
-        '<div><label class="block mb-1 muted text-xs">Client Secret</label><input name="clientSecret" class="w-full rounded-lg border px-2 py-1 text-xs focus:ring-1 focus:ring-cyan-500"/></div>'+
-        '<div><label class="block mb-1 muted text-xs">Redirect URI</label><input name="redirectUri" class="w-full rounded-lg border px-2 py-1 text-xs focus:ring-1 focus:ring-cyan-500"/></div>'+
-      '</form><div class="mt-2 flex gap-2"><button id="btn-save-oauth" class="text-[11px] rounded-xl bg-cyan-500 px-3 py-1 font-semibold">保存 OAuth</button></div>'+
-    '</div></div>'+
-    '<div class="panel rounded-2xl border p-4">'+
-      '<h2 class="text-sm font-semibold mb-3">管理员密码</h2>'+
-      '<p class="text-[11px] muted mb-2">仅用于 <code>/admin</code> 后台登录，至少 6 位，建议与 Linux.do 账号密码不同。</p>'+
-      '<div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center text-[11px]">'+
-        '<input id="admin-pass-input" type="password" placeholder="输入新的管理员密码" class="flex-1 rounded-lg border px-3 py-2 text-xs focus:ring-1 focus:ring-cyan-500"/>'+
-        '<input id="admin-pass-input2" type="password" placeholder="再次输入以确认" class="flex-1 rounded-lg border px-3 py-2 text-xs focus:ring-1 focus:ring-cyan-500"/>'+
-        '<button id="btn-save-admin-pass" class="rounded-xl bg-emerald-500 px-4 py-2 text-[11px] font-semibold hover:bg-emerald-400">保存密码</button>'+
+  '<div class="panel rounded-2xl border p-6 shadow-lg">'+
+    '<div class="flex items-center justify-between mb-4">'+
+      '<div class="flex items-center gap-3">'+
+        '<span class="text-xl">🔗</span>'+
+        '<h2 class="text-lg font-bold">OAuth 配置</h2>'+
       '</div>'+
-      '<p class="text-[11px] muted mt-2">修改成功后立即生效，下次登录需要使用新密码。</p>'+
-    '</div>';
+      '<button id="btn-toggle-oauth" class="text-xs rounded-full border px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">展开</button>'+
+    '</div>'+
+    '<div id="oauth-body" class="hidden">'+
+      '<form id="oauth-form" class="grid md:grid-cols-3 gap-4">'+
+        '<div>'+
+          '<label class="block mb-2 text-sm font-medium flex items-center gap-1.5">'+
+            '<span>🆔</span> Client ID'+
+          '</label>'+
+          '<input name="clientId" placeholder="输入 Client ID" class="w-full rounded-lg border px-3 py-2 text-sm"/>'+
+        '</div>'+
+        '<div>'+
+          '<label class="block mb-2 text-sm font-medium flex items-center gap-1.5">'+
+            '<span>🔐</span> Client Secret'+
+          '</label>'+
+          '<input name="clientSecret" placeholder="输入 Client Secret" class="w-full rounded-lg border px-3 py-2 text-sm"/>'+
+        '</div>'+
+        '<div>'+
+          '<label class="block mb-2 text-sm font-medium flex items-center gap-1.5">'+
+            '<span>🔗</span> Redirect URI'+
+          '</label>'+
+          '<input name="redirectUri" placeholder="输入 Redirect URI" class="w-full rounded-lg border px-3 py-2 text-sm"/>'+
+        '</div>'+
+      '</form>'+
+      '<div class="mt-4 flex gap-2">'+
+        '<button id="btn-save-oauth" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 '+
+                                          'px-4 py-2 text-sm font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all">'+
+          '<span>💾</span> 保存 OAuth 配置'+
+        '</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>'+
+  '<div class="panel rounded-2xl border p-6 shadow-lg">'+
+    '<div class="flex items-center gap-3 mb-4">'+
+      '<span class="text-xl">🔑</span>'+
+      '<h2 class="text-lg font-bold">管理员密码</h2>'+
+    '</div>'+
+    '<p class="text-sm muted mb-4 bg-amber-500/5 border border-amber-500/20 rounded-xl px-3 py-2">'+
+      '⚠️ 仅用于 <code class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 rounded">/admin</code> 后台登录，至少 6 位，建议与 Linux.do 账号密码不同'+
+    '</p>'+
+    '<div class="grid md:grid-cols-2 gap-4 mb-4">'+
+      '<div>'+
+        '<label class="block mb-2 text-sm font-medium">新密码</label>'+
+        '<input id="admin-pass-input" type="password" placeholder="输入新的管理员密码" '+
+               'class="w-full rounded-lg border px-3 py-2.5 text-sm"/>'+
+      '</div>'+
+      '<div>'+
+        '<label class="block mb-2 text-sm font-medium">确认密码</label>'+
+        '<input id="admin-pass-input2" type="password" placeholder="再次输入以确认" '+
+               'class="w-full rounded-lg border px-3 py-2.5 text-sm"/>'+
+      '</div>'+
+    '</div>'+
+    '<button id="btn-save-admin-pass" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 '+
+                                              'px-4 py-2 text-sm font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all">'+
+      '<span>🔒</span> 保存密码'+
+    '</button>'+
+    '<p class="text-xs muted mt-3">💡 修改成功后立即生效，下次登录需要使用新密码</p>'+
+  '</div>';
   root.appendChild(cfg);
 
   document.getElementById('btn-toggle-oauth').addEventListener('click',()=>{
@@ -1435,18 +1554,34 @@ async function renderAdmin(root, name){
   document.getElementById('btn-save-admin-pass').addEventListener('click', saveAdminPassword);
 
   const listWrap=document.createElement('section');
-  listWrap.className='mt-6';
-  listWrap.innerHTML='<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-2">'+
-    '<div class="flex items-center gap-3"><h2 class="text-lg font-semibold">VPS 列表</h2><button id="btn-verify-all" class="px-3 py-1 rounded-full border text-[11px]">一键验证全部</button></div>'+
-    '<div class="flex flex-wrap items-center gap-2 text-[11px]">'+
-      '<span>状态筛选：</span>'+
-      '<button data-status="all" class="px-2 py-1 rounded-full border">全部</button>'+
-      '<button data-status="active" class="px-2 py-1 rounded-full border">运行中</button>'+
-      '<button data-status="failed" class="px-2 py-1 rounded-full border">失败</button>'+
-      '<span class="ml-2">搜索：</span><input id="filter-input" placeholder="按 IP / 用户名 / 备注 ..." class="rounded-lg border px-2 py-1 text-[11px] focus:ring-1 focus:ring-cyan-500"/>'+
-      '<button id="filter-btn" class="px-2 py-1 rounded-full border">搜索</button><button id="filter-clear-btn" class="px-2 py-1 rounded-full border">清除</button>'+
-    '</div></div>'+
-    '<div id="vps-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>';
+  listWrap.className='mt-8';
+  listWrap.innerHTML='<div class="panel rounded-2xl border p-6 shadow-lg mb-6">'+
+    '<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">'+
+      '<div class="flex items-center gap-3">'+
+        '<span class="text-2xl">📋</span>'+
+        '<h2 class="text-2xl font-bold">VPS 列表</h2>'+
+      '</div>'+
+      '<button id="btn-verify-all" class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 '+
+                                          'px-4 py-2 text-sm font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all">'+
+        '<span>🔄</span> 一键验证全部'+
+      '</button>'+
+    '</div>'+
+    '<div class="flex flex-col md:flex-row gap-3">'+
+      '<div class="flex flex-wrap items-center gap-2">'+
+        '<span class="text-sm font-medium">筛选：</span>'+
+        '<button data-status="all" class="px-3 py-1.5 rounded-full border text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">全部</button>'+
+        '<button data-status="active" class="px-3 py-1.5 rounded-full border text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">✅ 运行中</button>'+
+        '<button data-status="failed" class="px-3 py-1.5 rounded-full border text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">❌ 失败</button>'+
+      '</div>'+
+      '<div class="flex-1 flex gap-2">'+
+        '<input id="filter-input" placeholder="🔍 搜索 IP / 用户名 / 备注..." '+
+               'class="flex-1 rounded-lg border px-3 py-2 text-sm"/>'+
+        '<button id="filter-btn" class="px-4 py-2 rounded-lg border text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">搜索</button>'+
+        '<button id="filter-clear-btn" class="px-4 py-2 rounded-lg border text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">清除</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>'+
+  '<div id="vps-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>';
   root.appendChild(listWrap);
 
   listWrap.querySelectorAll('button[data-status]').forEach(btn=> btn.addEventListener('click',()=>{
@@ -1474,7 +1609,12 @@ async function renderAdmin(root, name){
 
 async function loadStats(){
   const wrap=document.getElementById('admin-stats');
-  wrap.innerHTML='<div class="muted text-xs mb-3">正在加载统计信息...</div>';
+  wrap.innerHTML='<div class="flex items-center justify-center py-8">'+
+    '<div class="flex flex-col items-center gap-3">'+
+      '<div class="loading-spinner"></div>'+
+      '<div class="text-sm muted">正在加载统计信息...</div>'+
+    '</div>'+
+  '</div>';
   try{
     const r=await fetch('/api/admin/stats',{credentials:'same-origin',cache:'no-store'});
 
@@ -1586,7 +1726,12 @@ async function saveAdminPassword(){
 
 async function loadVps(){
   const list=document.getElementById('vps-list');
-  list.innerHTML='<div class="muted text-xs col-span-full">正在加载 VPS...</div>';
+  list.innerHTML='<div class="col-span-full flex items-center justify-center py-12">'+
+    '<div class="flex flex-col items-center gap-3">'+
+      '<div class="loading-spinner"></div>'+
+      '<div class="text-sm muted">正在加载 VPS 列表...</div>'+
+    '</div>'+
+  '</div>';
   try{
     const r=await fetch('/api/admin/vps',{credentials:'same-origin',cache:'no-store'});
 
@@ -1662,25 +1807,51 @@ function renderVpsList(){
   list.innerHTML='';
   arr.forEach(v=>{
     const card=document.createElement('div');
-    card.className='card rounded-2xl border p-3 flex flex-col gap-2 text-xs';
+    card.className='card rounded-2xl border p-4 flex flex-col gap-3 text-sm shadow-lg hover:shadow-xl transition-all';
     const dt=v.donatedAt?new Date(v.donatedAt):null;
     const t=dt?dt.toLocaleString():'';
     const uname=v.donatedByUsername||'';
     const p='https://linux.do/u/'+encodeURIComponent(uname);
 
-    card.innerHTML='<div class="flex items-center justify-between gap-2"><div class="text-[11px] break-words">IP：'+v.ip+':'+v.port+'</div><div class="'+scls(v.status)+' text-[11px]">'+stxt(v.status)+'</div></div>'+
-      '<div class="flex flex-wrap gap-2 text-[11px]"><span>投喂者：<a href="'+p+'" target="_blank" class="underline">@'+uname+'</a></span><span>地区：'+(v.country||'未填写')+(v.ipLocation?' · '+v.ipLocation:'')+'</span></div>'+
-      '<div class="flex flex-wrap gap-2 text-[11px]"><span>流量/带宽：'+(v.traffic||'未填写')+'</span><span>到期：'+(v.expiryDate||'未填写')+'</span></div>'+
-      '<div class="text-[11px] muted break-words">配置：'+(v.specs||'未填写')+'</div>'+
-      (v.note?'<div class="text-[11px] text-amber-300/90 break-words">用户备注：'+v.note+'</div>':'')+
-      (v.adminNote?'<div class="text-[11px] text-cyan-300/90 break-words">管理员备注：'+v.adminNote+'</div>':'')+
-      (t?'<div class="text-[11px] muted">投喂时间：'+t+'</div>':'')+
-      '<div class="flex flex-wrap gap-2 mt-1">'+
-        '<button class="px-2 py-1 rounded-full border" data-act="login" data-id="'+v.id+'">查看信息</button>'+
-        '<button class="px-2 py-1 rounded-full border" data-act="verify" data-id="'+v.id+'">一键验证</button>'+
-        '<button class="px-2 py-1 rounded-full border" data-act="failed" data-id="'+v.id+'">设为失败</button>'+
-        '<button class="px-2 py-1 rounded-full border" data-act="edit" data-id="'+v.id+'">编辑信息</button>'+
-        '<button class="px-2 py-1 rounded-full border" data-act="del" data-id="'+v.id+'">删除</button>'+
+    card.innerHTML='<div class="flex items-center justify-between gap-2 pb-3 border-b">'+
+        '<div class="flex items-center gap-2 text-sm font-medium">'+
+          '<span>🖥️</span>'+
+          '<span class="break-words">'+v.ip+':'+v.port+'</span>'+
+        '</div>'+
+        '<span class="'+scls(v.status)+' text-xs px-2 py-1 rounded-full">'+stxt(v.status)+'</span>'+
+      '</div>'+
+      '<div class="space-y-2 text-xs">'+
+        '<div class="flex items-center gap-2">'+
+          '<span class="opacity-60">👤</span>'+
+          '<span>投喂者：<a href="'+p+'" target="_blank" class="text-sky-500 hover:text-cyan-400 underline transition-colors">@'+uname+'</a></span>'+
+        '</div>'+
+        '<div class="flex items-center gap-2">'+
+          '<span class="opacity-60">🌍</span>'+
+          '<span>'+(v.country||'未填写')+(v.ipLocation?' · '+v.ipLocation:'')+'</span>'+
+        '</div>'+
+        '<div class="grid grid-cols-2 gap-2">'+
+          '<div class="flex items-center gap-1.5"><span class="opacity-60">📊</span><span class="truncate">'+(v.traffic||'未填写')+'</span></div>'+
+          '<div class="flex items-center gap-1.5"><span class="opacity-60">📅</span><span class="truncate">'+(v.expiryDate||'未填写')+'</span></div>'+
+        '</div>'+
+        '<div class="bg-slate-100 dark:bg-slate-800/50 rounded-lg px-2 py-1.5 flex items-start gap-1.5">'+
+          '<span class="opacity-60">⚙️</span>'+
+          '<span class="break-words">'+(v.specs||'未填写')+'</span>'+
+        '</div>'+
+        (v.note?'<div class="bg-amber-500/5 border border-amber-500/20 rounded-lg px-2 py-1.5 text-amber-600 dark:text-amber-300 flex items-start gap-1.5">'+
+          '<span class="opacity-60">💬</span>'+
+          '<span class="break-words">'+v.note+'</span>'+
+        '</div>':'')+
+        (v.adminNote?'<div class="bg-cyan-500/5 border border-cyan-500/20 rounded-lg px-2 py-1.5 text-cyan-600 dark:text-cyan-300 flex items-start gap-1.5">'+
+          '<span class="opacity-60">📝</span>'+
+          '<span class="break-words">'+v.adminNote+'</span>'+
+        '</div>':'')+
+        (t?'<div class="flex items-center gap-1.5 text-xs muted"><span class="opacity-60">🕐</span><span>'+t+'</span></div>':'')+
+      '</div>'+
+      '<div class="flex flex-wrap gap-2 pt-3 border-t">'+
+        '<button class="px-3 py-1.5 rounded-lg border text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" data-act="login" data-id="'+v.id+'">🔍 查看</button>'+
+        '<button class="px-3 py-1.5 rounded-lg border text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" data-act="verify" data-id="'+v.id+'">✅ 验证</button>'+
+        '<button class="px-3 py-1.5 rounded-lg border text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-all" data-act="edit" data-id="'+v.id+'">✏️ 编辑</button>'+
+        '<button class="px-3 py-1.5 rounded-lg border border-red-300 text-red-500 text-xs hover:bg-red-50 dark:hover:bg-red-900/20 transition-all" data-act="del" data-id="'+v.id+'">🗑️ 删除</button>'+
       '</div>';
 
     card.querySelectorAll('button[data-act]').forEach(btn=>{
@@ -1811,59 +1982,82 @@ function commonHead(title: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>${title}</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        border: "hsl(214.3 31.8% 91.4%)",
+        primary: {
+          DEFAULT: "hsl(222.2 47.4% 11.2%)",
+          foreground: "hsl(210 40% 98%)",
+        },
+      }
+    }
+  }
+}
+</script>
 <style>
 :root{
-  color-scheme: dark;
+  --radius: 0.5rem;
+  color-scheme: light;
 }
 html,body{
-  font-family: system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 15px;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 body{
-  background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
-  color:#e5f0ff;
+  background: #f8fafc;
+  color: #1e293b;
   min-height: 100vh;
 }
-body[data-theme="light"]{
-  color-scheme: light;
-  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-  color:#0f172a;
+body[data-theme="dark"]{
+  color-scheme: dark;
+  background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+  color: #e5f0ff;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes slideUpAndFade {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out;
+.animate-in {
+  animation: slideUpAndFade 0.4s ease-out;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(56, 189, 248, 0.2);
-  border-top-color: #38bdf8;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f4f6;
+  border-top-color: #3b82f6;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 1s linear infinite;
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
 .panel,.card{
+  background: white;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+body[data-theme="dark"] .panel,
+body[data-theme="dark"] .card{
   background: rgba(15,23,42,.95);
-  border: 1px solid rgba(56,189,248,.3);
+  border-color: rgba(56,189,248,.3);
   box-shadow: 0 20px 50px rgba(0,0,0,.5), 0 0 0 1px rgba(56,189,248,.1);
   backdrop-filter: blur(10px);
 }
-body[data-theme="light"] .panel,
-body[data-theme="light"] .card{
-  background: rgba(255,255,255,.95);
-  border-color: rgba(226,232,240,.8);
-  box-shadow: 0 20px 50px rgba(148,163,184,.15), 0 0 0 1px rgba(226,232,240,.5);
-  backdrop-filter: blur(10px);
+body[data-theme="dark"] .card:hover{
+  box-shadow: 0 25px 60px rgba(0,0,0,.6), 0 0 0 1px rgba(56,189,248,.3);
 }
 
 .card{
