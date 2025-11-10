@@ -1107,6 +1107,10 @@ app.get('/donate/vps', c => {
       </div>
       <div class="flex flex-wrap items-center gap-3">
         <div id="user-info" class="text-sm panel px-5 py-2.5 border"></div>
+        <a href="/donate" class="btn-secondary flex items-center gap-2">
+          <span>🏠</span>
+          <span>首页</span>
+        </a>
         <button onclick="logout()" class="btn-secondary">
           退出登录
         </button>
