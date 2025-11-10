@@ -2345,7 +2345,7 @@ function renderServerMapChart(){
         '</div>'+
         '<div class="flex gap-3 justify-center">'+
           '<button onclick="location.reload()" class="btn-primary">刷新页面重试</button>'+
-          '<button onclick="document.getElementById(\'btn-toggle-map\').click()" class="btn-secondary">收起地图</button>'+
+          '<button onclick="document.getElementById(&quot;btn-toggle-map&quot;).click()" class="btn-secondary">收起地图</button>'+
         '</div>'+
         '<div class="mt-6 text-xs muted">'+
           '<p>💡 提示：地图功能为可选功能，不影响其他管理功能的使用</p>'+
