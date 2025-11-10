@@ -812,7 +812,9 @@ app.get('/donate', c => {
             <a href="https://linux.do/u/sar60677" target="_blank"
                class="font-semibold transition-colors hover:opacity-80">@sar60677</a>、
             <a href="https://linux.do/u/carrydelahaye" target="_blank"
-               class="font-semibold transition-colors hover:opacity-80">@Carry&nbsp;Delahaye</a>。
+               class="font-semibold transition-colors hover:opacity-80">@Carry&nbsp;Delahaye</a>
+            <a href="https://linux.do/u/kkkyyx" target="_blank"
+               class="font-semibold transition-colors hover:opacity-80">@kkkyyx</a>。
           </p>
 
           <div class="alert-warning text-sm leading-relaxed rounded-xl px-4 py-3">
@@ -1732,17 +1734,19 @@ async function renderAdmin(root, name){
       '<button id="btn-toggle-map" class="btn-secondary text-xs">展开</button>'+
     '</div>'+
     '<div id="map-body" class="hidden">'+
-      '<div id="server-distribution-admin" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>'+
+      '<div id="server-map-chart" style="width:100%;height:500px;"></div>'+
+      '<div id="server-distribution-admin" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mt-4"></div>'+
     '</div>'+
   '</div>';
   root.appendChild(distMap);
-  
+
   document.getElementById('btn-toggle-map').addEventListener('click',()=>{
     const b=document.getElementById('map-body');
     const btn=document.getElementById('btn-toggle-map');
     if(b.classList.contains('hidden')){
       b.classList.remove('hidden');
       btn.textContent='收起';
+      renderServerMapChart();
       renderServerDistributionAdmin();
     } else {
       b.classList.add('hidden');
@@ -2037,6 +2041,136 @@ async function saveAdminPassword(){
     console.error('Save admin password error:', err);
     toast('保存异常','error');
   }
+}
+
+function renderServerMapChart(){
+  const chartDom = document.getElementById('server-map-chart');
+  if(!chartDom || !window.echarts) return;
+
+  const myChart = echarts.init(chartDom);
+
+  if(!allVpsList.length) {
+    myChart.showLoading();
+    return;
+  }
+
+  // 统计各国家/地区的服务器数量
+  const countryMap = new Map();
+  allVpsList.forEach(vps => {
+    const country = vps.country || '未知';
+    const count = countryMap.get(country) || 0;
+    countryMap.set(country, count + 1);
+  });
+
+  // 转换为 ECharts 需要的数据格式
+  const mapData = Array.from(countryMap.entries()).map(([name, value]) => {
+    // 提取国家名称（去掉emoji和多余空格）
+    const cleanName = name.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, '').trim();
+    return { name: cleanName, value: value };
+  });
+
+  const isDark = document.body.getAttribute('data-theme') === 'dark';
+
+  const option = {
+    tooltip: {
+      trigger: 'item',
+      formatter: function(params) {
+        if(params.value) {
+          return params.name + '<br/>服务器数量：' + params.value + ' 台';
+        }
+        return params.name + '<br/>暂无服务器';
+      },
+      backgroundColor: isDark ? 'rgba(28, 28, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      borderColor: isDark ? 'rgba(56, 56, 58, 0.8)' : 'rgba(210, 210, 215, 0.8)',
+      textStyle: {
+        color: isDark ? '#f5f5f7' : '#1d1d1f'
+      }
+    },
+    visualMap: {
+      min: 0,
+      max: Math.max(...Array.from(countryMap.values()), 1),
+      text: ['多', '少'],
+      realtime: false,
+      calculable: true,
+      inRange: {
+        color: isDark
+          ? ['#1a1a2e', '#0f3460', '#16213e', '#0A84FF', '#0066CC']
+          : ['#f0e6ff', '#ddd6fe', '#c4b5fd', '#a78bfa', '#8b5cf6']
+      },
+      textStyle: {
+        color: isDark ? '#f5f5f7' : '#1d1d1f'
+      },
+      bottom: 20,
+      left: 'center',
+      orient: 'horizontal'
+    },
+    series: [
+      {
+        name: '服务器数量',
+        type: 'map',
+        map: 'world',
+        roam: true,
+        emphasis: {
+          label: {
+            show: true,
+            color: isDark ? '#f5f5f7' : '#1d1d1f'
+          },
+          itemStyle: {
+            areaColor: isDark ? '#0A84FF' : '#8b5cf6',
+            borderColor: '#fff',
+            borderWidth: 2
+          }
+        },
+        itemStyle: {
+          borderColor: isDark ? '#38383a' : '#d2d2d7',
+          borderWidth: 0.5,
+          areaColor: isDark ? '#1c1c1e' : '#f5f5f7'
+        },
+        label: {
+          show: false,
+          color: isDark ? '#f5f5f7' : '#1d1d1f'
+        },
+        data: mapData
+      }
+    ]
+  };
+
+  // 需要先注册世界地图
+  fetch('https://cdn.jsdelivr.net/npm/echarts@5.4.3/map/json/world.json')
+    .then(response => response.json())
+    .then(worldJson => {
+      echarts.registerMap('world', worldJson);
+      myChart.setOption(option);
+      myChart.hideLoading();
+
+      // 监听主题切换
+      window.addEventListener('themeChanged', () => {
+        const newIsDark = document.body.getAttribute('data-theme') === 'dark';
+        option.visualMap.textStyle.color = newIsDark ? '#f5f5f7' : '#1d1d1f';
+        option.visualMap.inRange.color = newIsDark
+          ? ['#1a1a2e', '#0f3460', '#16213e', '#0A84FF', '#0066CC']
+          : ['#f0e6ff', '#ddd6fe', '#c4b5fd', '#a78bfa', '#8b5cf6'];
+        option.tooltip.backgroundColor = newIsDark ? 'rgba(28, 28, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+        option.tooltip.borderColor = newIsDark ? 'rgba(56, 56, 58, 0.8)' : 'rgba(210, 210, 215, 0.8)';
+        option.tooltip.textStyle.color = newIsDark ? '#f5f5f7' : '#1d1d1f';
+        option.series[0].emphasis.label.color = newIsDark ? '#f5f5f7' : '#1d1d1f';
+        option.series[0].emphasis.itemStyle.areaColor = newIsDark ? '#0A84FF' : '#8b5cf6';
+        option.series[0].itemStyle.borderColor = newIsDark ? '#38383a' : '#d2d2d7';
+        option.series[0].itemStyle.areaColor = newIsDark ? '#1c1c1e' : '#f5f5f7';
+        option.series[0].label.color = newIsDark ? '#f5f5f7' : '#1d1d1f';
+        myChart.setOption(option);
+      });
+
+      // 响应式调整
+      window.addEventListener('resize', () => {
+        myChart.resize();
+      });
+    })
+    .catch(err => {
+      console.error('Failed to load world map:', err);
+      myChart.hideLoading();
+      chartDom.innerHTML = '<div class="text-center text-red-400 py-8">地图加载失败</div>';
+    });
 }
 
 function renderServerDistributionAdmin(){
@@ -2358,6 +2492,7 @@ function commonHead(title: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>${title}</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 <script>
 tailwind.config = {
   theme: {
@@ -2404,12 +2539,13 @@ html,body{
   overflow-x: hidden;
 }
 body{
-  background: linear-gradient(135deg, 
-    #f5e6ff 0%,    /* 淡紫色 */
-    #ffe6f0 25%,   /* 淡粉色 */
-    #ffebe6 50%,   /* 淡橙色 */
-    #fff4e6 75%,   /* 淡黄色 */
-    #fffbe6 100%   /* 极淡黄 */
+  background: linear-gradient(135deg,
+    #f0e6ff 0%,    /* 淡紫色 */
+    #e9d5ff 20%,   /* 浅紫色 */
+    #ddd6fe 40%,   /* 紫罗兰 */
+    #c4b5fd 60%,   /* 中紫色 */
+    #e9d5ff 80%,   /* 浅紫色 */
+    #f0e6ff 100%   /* 淡紫色 */
   );
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
@@ -2427,12 +2563,12 @@ body::before{
   content: '';
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, 
-    rgba(197, 94, 236, 0.03) 0%,
-    rgba(251, 99, 166, 0.03) 25%,
-    rgba(255, 124, 134, 0.03) 50%,
-    rgba(255, 163, 106, 0.03) 75%,
-    rgba(255, 206, 69, 0.03) 100%
+  background: linear-gradient(135deg,
+    rgba(139, 92, 246, 0.05) 0%,
+    rgba(168, 85, 247, 0.04) 25%,
+    rgba(147, 51, 234, 0.03) 50%,
+    rgba(126, 34, 206, 0.04) 75%,
+    rgba(139, 92, 246, 0.05) 100%
   );
   pointer-events: none;
   z-index: 0;
@@ -2901,7 +3037,7 @@ input, textarea, select{
   -webkit-backdrop-filter: blur(10px);
   color: #1d1d1f;
   border: 1px solid rgba(210, 210, 215, 0.8);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 14px;
   font-size: 15px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2909,24 +3045,38 @@ input, textarea, select{
   -moz-appearance: none;
   appearance: none;
   position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 select{
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231d1d1f' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 40px;
+  cursor: pointer;
 }
 optgroup{
   font-weight: 600;
   color: #86868b;
+  font-size: 14px;
+  padding: 8px 12px;
+  background: rgba(245, 245, 247, 0.5);
+}
+option{
+  padding: 8px 12px;
+  color: #1d1d1f;
+  background: #ffffff;
+  font-size: 14px;
+  line-height: 1.5;
 }
 input:hover, textarea:hover, select:hover{
   border-color: #86868b;
   transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 input:focus, textarea:focus, select:focus{
-  border-color: #007AFF;
-  box-shadow: 0 0 0 4px rgba(0,122,255,0.12), 0 2px 8px rgba(0,122,255,0.15);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12), 0 2px 8px rgba(139, 92, 246, 0.15);
   outline: none;
   transform: translateY(-2px);
 }
@@ -2964,29 +3114,46 @@ input.success, textarea.success, select.success{
 body[data-theme="dark"] input,
 body[data-theme="dark"] textarea,
 body[data-theme="dark"] select{
-  background: rgba(44, 44, 46, 0.85);
+  background: rgba(44, 44, 46, 0.9);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: #f5f5f7;
   border-color: rgba(56, 56, 58, 0.8);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 body[data-theme="dark"] select{
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f5f5f7' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
 }
 body[data-theme="dark"] optgroup{
   color: #98989d;
+  background: rgba(28, 28, 30, 0.8);
+  font-size: 14px;
+  padding: 8px 12px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body[data-theme="dark"] option{
+  color: #f5f5f7;
+  background: rgba(44, 44, 46, 0.95);
+  font-size: 14px;
+  padding: 8px 12px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 body[data-theme="dark"] input:hover,
 body[data-theme="dark"] textarea:hover,
 body[data-theme="dark"] select:hover{
   border-color: #98989d;
   transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 body[data-theme="dark"] input:focus,
 body[data-theme="dark"] textarea:focus,
 body[data-theme="dark"] select:focus{
-  border-color: #0A84FF;
-  box-shadow: 0 0 0 4px rgba(10,132,255,0.18), 0 2px 8px rgba(10,132,255,0.2);
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.18), 0 2px 8px rgba(139, 92, 246, 0.2);
   transform: translateY(-2px);
 }
 body[data-theme="dark"] input.error,
@@ -3277,6 +3444,9 @@ function toggleTheme(){
   document.documentElement.setAttribute('data-theme', nxt);
   localStorage.setItem('theme', nxt);
   updateThemeBtn && updateThemeBtn();
+
+  // 触发主题切换事件，通知地图更新
+  window.dispatchEvent(new Event('themeChanged'));
 }
 
 function updateThemeBtn(){
