@@ -67,7 +67,7 @@ async function getIPLocation(ip: string): Promise<string> {
       const parts = [d.country, d.regionName, d.city].filter(Boolean);
       if (parts.length) return parts.join(', ');
     }
-  } catch (_) {}
+  } catch (_) { }
   return '未知地区';
 }
 
@@ -830,57 +830,18 @@ app.get('/donate', c => {
           <button onclick="gotoDonatePage()" class="btn-primary">
             <span class="text-lg">🧡</span> 我要投喂 VPS
           </button>
-          <button onclick="shareLeaderboard()" class="btn-secondary">
-            🔗 分享榜单
-          </button>
           <button id="theme-toggle" onclick="toggleTheme()">浅色模式</button>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- 服务器分布概览 -->
   <section class="mb-8">
-    <div class="panel border p-6">
-      <div class="flex items-center gap-3 mb-4">
-        <span class="text-3xl">🗺️</span>
-        <h2 class="text-2xl font-bold">全球服务器分布</h2>
-      </div>
-      <div id="server-distribution" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>
-    </div>
-  </section>
-
-  <section class="mb-8">
-    <div class="flex flex-col gap-4 mb-6">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <span class="text-3xl">🏆</span>
-          <div>
-            <h2 class="text-3xl font-bold leading-tight">捐赠榜单</h2>
-            <p id="leaderboard-count" class="text-sm muted mt-1"></p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 搜索筛选栏 -->
-      <div class="panel border p-4">
-        <div class="flex flex-col md:flex-row gap-3">
-          <div class="flex-1">
-            <input type="text" id="search-leaderboard" placeholder="🔍 搜索用户名、国家、配置..." 
-                   class="w-full" />
-          </div>
-          <div class="flex gap-2">
-            <select id="filter-status" class="w-full md:w-auto">
-              <option value="">全部状态</option>
-              <option value="active">✅ 运行中</option>
-              <option value="failed">❌ 失败</option>
-              <option value="inactive">⏸️ 未启用</option>
-            </select>
-            <button onclick="clearFilters()" class="btn-secondary whitespace-nowrap">
-              清除筛选
-            </button>
-          </div>
-        </div>
+    <div class="flex items-center gap-3 mb-6">
+      <span class="text-3xl">🏆</span>
+      <div>
+        <h2 class="text-3xl font-bold leading-tight">捐赠榜单</h2>
+        <p id="leaderboard-count" class="text-sm muted mt-1"></p>
       </div>
     </div>
     
@@ -910,8 +871,6 @@ app.get('/donate', c => {
 updateThemeBtn();
 
 let allLeaderboardData = [];
-let searchQuery = '';
-let statusFilter = '';
 
 async function gotoDonatePage(){
   try{
@@ -932,143 +891,22 @@ async function gotoDonatePage(){
   }
 }
 
-function shareLeaderboard(){
-  const url = window.location.href;
-  const text = '风萧萧公益机场 VPS 投喂榜 - 感谢各位热佬的支持！';
-  
-  if(navigator.share){
-    navigator.share({
-      title: '风萧萧公益机场 VPS 投喂榜',
-      text: text,
-      url: url
-    }).then(()=>{
-      toast('分享成功','success');
-    }).catch(err=>{
-      if(err.name !== 'AbortError'){
-        fallbackShare(url, text);
-      }
-    });
-  } else {
-    fallbackShare(url, text);
-  }
-}
-
-function fallbackShare(url, text){
-  const shareText = text + '\\n' + url;
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(shareText).then(()=>{
-      toast('链接已复制到剪贴板','success');
-    }).catch(()=>{
-      toast('分享失败','error');
-    });
-  } else {
-    const ta = document.createElement('textarea');
-    ta.value = shareText;
-    ta.style.position = 'fixed';
-    ta.style.left = '-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    try{
-      document.execCommand('copy');
-      toast('链接已复制到剪贴板','success');
-    }catch{
-      toast('分享失败','error');
-    }
-    document.body.removeChild(ta);
-  }
-}
-
 function statusText(s){ return s==='active'?'运行中':(s==='failed'?'失败':'未启用'); }
 function statusCls(s){ return s==='active'?'badge-ok':(s==='failed'?'badge-fail':'badge-idle'); }
-
-function clearFilters(){
-  searchQuery = '';
-  statusFilter = '';
-  document.getElementById('search-leaderboard').value = '';
-  document.getElementById('filter-status').value = '';
-  renderLeaderboard();
-}
-
-function filterLeaderboard(){
-  searchQuery = document.getElementById('search-leaderboard').value.toLowerCase();
-  statusFilter = document.getElementById('filter-status').value;
-  renderLeaderboard();
-}
-
-function renderServerDistribution(){
-  const distBox = document.getElementById('server-distribution');
-  if(!allLeaderboardData.length) return;
-  
-  // 统计各国家/地区的服务器数量
-  const countryMap = new Map();
-  allLeaderboardData.forEach(user => {
-    user.servers.forEach(srv => {
-      const country = srv.country || '未知';
-      const count = countryMap.get(country) || 0;
-      countryMap.set(country, count + 1);
-    });
-  });
-  
-  // 按数量排序
-  const sorted = Array.from(countryMap.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 12);
-  
-  if(!sorted.length){
-    distBox.innerHTML = '<div class="col-span-full text-sm muted text-center">暂无数据</div>';
-    return;
-  }
-  
-  distBox.innerHTML = '';
-  sorted.forEach(([country, count]) => {
-    const item = document.createElement('div');
-    item.className = 'panel border rounded-lg px-3 py-2.5 text-center transition-all hover:shadow-sm cursor-pointer';
-    item.innerHTML = '<div class="text-2xl mb-1">'+country.split(' ')[0]+'</div>'+
-      '<div class="text-xs muted mb-1">'+country.split(' ').slice(1).join(' ')+'</div>'+
-      '<div class="font-bold text-lg">'+count+'</div>'+
-      '<div class="text-xs muted">台服务器</div>';
-    item.onclick = () => {
-      searchQuery = country;
-      document.getElementById('search-leaderboard').value = country;
-      renderLeaderboard();
-      // 滚动到榜单
-      document.getElementById('leaderboard').scrollIntoView({behavior: 'smooth', block: 'start'});
-    };
-    distBox.appendChild(item);
-  });
-}
 
 function renderLeaderboard(){
   const box = document.getElementById('leaderboard');
   const countEl = document.getElementById('leaderboard-count');
   
-  let filtered = allLeaderboardData.filter(it => {
-    // 搜索过滤
-    if(searchQuery){
-      const text = [
-        it.username,
-        ...it.servers.map(s => [s.country, s.ipLocation, s.traffic, s.specs, s.note].join(' '))
-      ].join(' ').toLowerCase();
-      if(!text.includes(searchQuery)) return false;
-    }
-    
-    // 状态过滤
-    if(statusFilter){
-      if(!it.servers.some(s => s.status === statusFilter)) return false;
-    }
-    
-    return true;
-  });
+  countEl.textContent = allLeaderboardData.length ? ('共 '+allLeaderboardData.length+' 位投喂者') : '';
   
-  countEl.textContent = filtered.length ? ('共 '+filtered.length+' 位投喂者') : '';
-  
-  if(!filtered.length){
-    box.innerHTML='<div class="muted text-sm py-8 text-center">没有找到匹配的投喂记录</div>';
+  if(!allLeaderboardData.length){
+    box.innerHTML='<div class="muted text-sm py-8 text-center">暂时还没有投喂记录</div>';
     return;
   }
   
   box.innerHTML='';
-  filtered.forEach((it,idx)=>{
+  allLeaderboardData.forEach((it,idx)=>{
     const wrap=document.createElement('div');
     wrap.className='card border transition-all animate-slide-in';
     wrap.style.animationDelay = (idx * 0.05) + 's';
@@ -1085,9 +923,8 @@ function renderLeaderboard(){
     head.className += ' ' + gradientClass;
     
     const badge=getBadge(it.count);
-    const originalIdx = allLeaderboardData.indexOf(it);
     head.innerHTML='<div class="flex items-center gap-4 flex-1 min-w-0">'+
-      '<div class="flex-shrink-0 w-12 h-12 flex items-center justify-center text-3xl">'+medalByRank(originalIdx)+'</div>'+
+      '<div class="flex-shrink-0 w-12 h-12 flex items-center justify-center text-3xl">'+medalByRank(idx)+'</div>'+
       '<div class="flex flex-col gap-1.5 min-w-0">'+
         '<a class="font-bold text-xl hover:opacity-80 truncate transition-colors" target="_blank" href="https://linux.do/u/'+encodeURIComponent(it.username)+'" onclick="event.stopPropagation()">@'+it.username+'</a>'+
         '<div class="flex items-center gap-2 flex-wrap">'+
@@ -1209,25 +1046,11 @@ async function loadLeaderboard(){
       return;
     }
     
-    renderServerDistribution();
     renderLeaderboard();
   }catch(err){
     console.error('Leaderboard load error:', err);
     box.innerHTML='<div class="text-red-400 text-sm text-center py-8">'+err.message+'<br><button onclick="loadLeaderboard()" class="btn-secondary mt-4">重试</button></div>';
   }
-}
-
-// 绑定搜索筛选事件
-document.getElementById('search-leaderboard').addEventListener('input', debounce(filterLeaderboard, 300));
-document.getElementById('filter-status').addEventListener('change', filterLeaderboard);
-
-// 防抖函数
-function debounce(func, wait){
-  let timeout;
-  return function(...args){
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
 }
 
 loadLeaderboard();
@@ -1810,9 +1633,9 @@ async function checkAdmin(){
 function renderLogin(root){
   root.innerHTML='';
   const wrap=document.createElement('div');
-  wrap.className='panel max-w-md mx-auto rounded-2xl border p-8 shadow-xl animate-in';
+  wrap.className='panel max-w-md mx-auto border p-8 animate-in';
   wrap.innerHTML='<div class="text-center mb-6">'+
-    '<div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 mb-4">'+
+    '<div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style="background:#007AFF">'+
       '<span class="text-3xl">🔐</span>'+
     '</div>'+
     '<h1 class="text-2xl font-bold mb-2">管理员登录</h1>'+
@@ -1865,7 +1688,7 @@ async function renderAdmin(root, name){
   header.innerHTML='<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">'+
     '<div class="space-y-3">'+
       '<div class="flex items-center gap-3">'+
-        '<div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500">'+
+        '<div class="inline-flex items-center justify-center w-12 h-12 rounded-xl" style="background:#007AFF">'+
           '<span class="text-2xl">⚙️</span>'+
         '</div>'+
         '<h1 class="grad-title text-3xl md:text-4xl font-bold">VPS 管理后台</h1>'+
@@ -1897,12 +1720,41 @@ async function renderAdmin(root, name){
   const stats=document.createElement('section');
   stats.id='admin-stats';
   root.appendChild(stats);
+  
+  const distMap=document.createElement('section');
+  distMap.className='mt-6';
+  distMap.innerHTML='<div class="panel border p-6">'+
+    '<div class="flex items-center justify-between mb-4">'+
+      '<div class="flex items-center gap-3">'+
+        '<span class="text-2xl">🗺️</span>'+
+        '<h2 class="text-lg font-bold">全球服务器分布</h2>'+
+      '</div>'+
+      '<button id="btn-toggle-map" class="btn-secondary text-xs">展开</button>'+
+    '</div>'+
+    '<div id="map-body" class="hidden">'+
+      '<div id="server-distribution-admin" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3"></div>'+
+    '</div>'+
+  '</div>';
+  root.appendChild(distMap);
+  
+  document.getElementById('btn-toggle-map').addEventListener('click',()=>{
+    const b=document.getElementById('map-body');
+    const btn=document.getElementById('btn-toggle-map');
+    if(b.classList.contains('hidden')){
+      b.classList.remove('hidden');
+      btn.textContent='收起';
+      renderServerDistributionAdmin();
+    } else {
+      b.classList.add('hidden');
+      btn.textContent='展开';
+    }
+  });
 
   const cfg=document.createElement('section');
   cfg.id='admin-config';
   cfg.className='mt-6 space-y-4';
   cfg.innerHTML=
-  '<div class="panel rounded-2xl border p-6 shadow-lg">'+
+  '<div class="panel border p-6">'+
     '<div class="flex items-center justify-between mb-4">'+
       '<div class="flex items-center gap-3">'+
         '<span class="text-xl">🔗</span>'+
@@ -1938,30 +1790,35 @@ async function renderAdmin(root, name){
       '</div>'+
     '</div>'+
   '</div>'+
-  '<div class="panel rounded-2xl border p-6 shadow-lg">'+
-    '<div class="flex items-center gap-3 mb-4">'+
-      '<span class="text-xl">🔑</span>'+
-      '<h2 class="text-lg font-bold">管理员密码</h2>'+
-    '</div>'+
-    '<div class="alert-warning text-sm mb-4 rounded-xl px-3 py-2">'+
-      '⚠️ 仅用于 <code class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 rounded">/admin</code> 后台登录，至少 6 位，建议与 Linux.do 账号密码不同'+
-    '</div>'+
-    '<div class="grid md:grid-cols-2 gap-4 mb-4">'+
-      '<div>'+
-        '<label class="block mb-2 text-sm font-medium">新密码</label>'+
-        '<input id="admin-pass-input" type="password" placeholder="输入新的管理员密码" '+
-               'class="w-full rounded-lg border px-3 py-2.5 text-sm"/>'+
+  '<div class="panel border p-6">'+
+    '<div class="flex items-center justify-between mb-4">'+
+      '<div class="flex items-center gap-3">'+
+        '<span class="text-xl">🔑</span>'+
+        '<h2 class="text-lg font-bold">管理员密码</h2>'+
       '</div>'+
-      '<div>'+
-        '<label class="block mb-2 text-sm font-medium">确认密码</label>'+
-        '<input id="admin-pass-input2" type="password" placeholder="再次输入以确认" '+
-               'class="w-full rounded-lg border px-3 py-2.5 text-sm"/>'+
-      '</div>'+
+      '<button id="btn-toggle-password" class="btn-secondary text-xs">展开</button>'+
     '</div>'+
-    '<button id="btn-save-admin-pass" class="btn-primary">'+
-      '<span>🔒</span> 保存密码'+
-    '</button>'+
-    '<p class="text-xs muted mt-3">💡 修改成功后立即生效，下次登录需要使用新密码</p>'+
+    '<div id="password-body" class="hidden">'+
+      '<div class="alert-warning text-sm mb-4 rounded-xl px-3 py-2">'+
+        '⚠️ 仅用于 <code>/admin</code> 后台登录，至少 6 位，建议与 Linux.do 账号密码不同'+
+      '</div>'+
+      '<div class="grid md:grid-cols-2 gap-4 mb-4">'+
+        '<div>'+
+          '<label class="block mb-2 text-sm font-medium">新密码</label>'+
+          '<input id="admin-pass-input" type="password" placeholder="输入新的管理员密码" '+
+                 'class="w-full rounded-lg border px-3 py-2.5 text-sm"/>'+
+        '</div>'+
+        '<div>'+
+          '<label class="block mb-2 text-sm font-medium">确认密码</label>'+
+          '<input id="admin-pass-input2" type="password" placeholder="再次输入以确认" '+
+                 'class="w-full rounded-lg border px-3 py-2.5 text-sm"/>'+
+        '</div>'+
+      '</div>'+
+      '<button id="btn-save-admin-pass" class="btn-primary">'+
+        '<span>🔒</span> 保存密码'+
+      '</button>'+
+      '<p class="text-xs muted mt-3">💡 修改成功后立即生效，下次登录需要使用新密码</p>'+
+    '</div>'+
   '</div>';
   root.appendChild(cfg);
 
@@ -1976,12 +1833,25 @@ async function renderAdmin(root, name){
       btn.textContent='展开';
     }
   });
+  
+  document.getElementById('btn-toggle-password').addEventListener('click',()=>{
+    const b=document.getElementById('password-body');
+    const btn=document.getElementById('btn-toggle-password');
+    if(b.classList.contains('hidden')){
+      b.classList.remove('hidden');
+      btn.textContent='收起';
+    } else {
+      b.classList.add('hidden');
+      btn.textContent='展开';
+    }
+  });
+  
   document.getElementById('btn-save-oauth').addEventListener('click', saveOAuth);
   document.getElementById('btn-save-admin-pass').addEventListener('click', saveAdminPassword);
 
   const listWrap=document.createElement('section');
   listWrap.className='mt-8';
-  listWrap.innerHTML='<div class="panel rounded-2xl border p-6 shadow-lg mb-6">'+
+  listWrap.innerHTML='<div class="panel border p-6 mb-6">'+
     '<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">'+
       '<div class="flex items-center gap-3">'+
         '<span class="text-2xl">📋</span>'+
@@ -2167,6 +2037,52 @@ async function saveAdminPassword(){
     console.error('Save admin password error:', err);
     toast('保存异常','error');
   }
+}
+
+function renderServerDistributionAdmin(){
+  const distBox = document.getElementById('server-distribution-admin');
+  if(!allVpsList.length) {
+    distBox.innerHTML = '<div class="col-span-full text-sm muted text-center py-4">暂无数据</div>';
+    return;
+  }
+  
+  // 统计各国家/地区的服务器数量
+  const countryMap = new Map();
+  allVpsList.forEach(vps => {
+    const country = vps.country || '未知';
+    const count = countryMap.get(country) || 0;
+    countryMap.set(country, count + 1);
+  });
+  
+  // 按数量排序
+  const sorted = Array.from(countryMap.entries())
+    .sort((a, b) => b[1] - a[1]);
+  
+  if(!sorted.length){
+    distBox.innerHTML = '<div class="col-span-full text-sm muted text-center py-4">暂无数据</div>';
+    return;
+  }
+  
+  distBox.innerHTML = '';
+  sorted.forEach(([country, count]) => {
+    const item = document.createElement('div');
+    item.className = 'panel border rounded-lg px-3 py-3 text-center transition-all hover:shadow-sm animate-slide-in';
+    item.innerHTML = '<div class="text-2xl mb-1.5">'+country.split(' ')[0]+'</div>'+
+      '<div class="text-xs muted mb-2">'+country.split(' ').slice(1).join(' ')+'</div>'+
+      '<div class="font-bold text-xl mb-0.5 count-up">'+count+'</div>'+
+      '<div class="text-xs muted">台服务器</div>';
+    distBox.appendChild(item);
+  });
+  
+  // 数字计数动画
+  setTimeout(()=>{
+    distBox.querySelectorAll('.count-up').forEach(el => {
+      const target = parseInt(el.textContent);
+      if(!isNaN(target)){
+        animateNumber(el, target);
+      }
+    });
+  }, 100);
 }
 
 async function loadVps(){
@@ -3287,6 +3203,20 @@ a:hover{
 }
 body[data-theme="dark"] a{
   color: #0A84FF;
+}
+
+/* ========== Code 标签 ========== */
+code{
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #1d1d1f;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+body[data-theme="dark"] code{
+  background: rgba(255, 255, 255, 0.1);
+  color: #f5f5f7;
 }
 
 /* ========== 可访问性 ========== */
