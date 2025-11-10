@@ -950,19 +950,15 @@ function renderLeaderboard(){
     head.onclick = () => {
       const listEl = wrap.querySelector('.server-list');
       const toggleBtn = wrap.querySelector('.toggle-expand');
-      const isCurrentlyExpanded = !listEl.classList.contains('expandable') || listEl.classList.contains('expanded');
+      const isCurrentlyExpanded = !listEl.classList.contains('expandable');
       
       if(isCurrentlyExpanded){
         listEl.classList.add('expandable');
-        listEl.classList.remove('expanded');
         toggleBtn.textContent = '▶';
-        toggleBtn.style.transform = 'rotate(0deg)';
         localStorage.setItem(cardId, 'collapsed');
       } else {
         listEl.classList.remove('expandable');
-        listEl.classList.add('expanded');
         toggleBtn.textContent = '▼';
-        toggleBtn.style.transform = 'rotate(0deg)';
         localStorage.removeItem(cardId);
       }
     };
@@ -970,7 +966,10 @@ function renderLeaderboard(){
     wrap.appendChild(head);
 
     const list=document.createElement('div');
-    list.className='server-list p-5 pt-4 space-y-3 ' + (isExpanded ? 'expanded' : 'expandable');
+    list.className='server-list p-5 pt-4 space-y-3';
+    if(!isExpanded){
+      list.classList.add('expandable');
+    }
     (it.servers||[]).forEach(srv=>{
       const d=document.createElement('div');
       d.className='panel border rounded-xl p-4 transition-all hover:shadow-sm';
@@ -1705,15 +1704,19 @@ async function renderAdmin(root, name){
         '<span class="text-sm">👤</span>'+
         '<span class="text-sm font-medium">'+name+'</span>'+
       '</div>'+
-      '<button id="theme-toggle" onclick="toggleTheme()">浅色模式</button>'+
+      '<button id="theme-toggle" class="btn-secondary">浅色模式</button>'+
       '<button id="btn-admin-logout" class="btn-danger">'+
         '退出登录'+
       '</button>'+
     '</div>'+
   '</div>';
   root.appendChild(header);
-  updateThemeBtn();
-  document.getElementById('theme-toggle').addEventListener('click',toggleTheme);
+
+  const themeBtn = document.getElementById('theme-toggle');
+  if(themeBtn){
+    updateThemeBtn();
+    themeBtn.addEventListener('click', toggleTheme);
+  }
   document.getElementById('btn-admin-logout').addEventListener('click', async()=>{
     try{await fetch('/api/admin/logout',{credentials:'same-origin'})}catch{}
     location.reload();
@@ -2062,11 +2065,42 @@ function renderServerMapChart(){
     countryMap.set(country, count + 1);
   });
 
-  // 转换为 ECharts 需要的数据格式
-  const mapData = Array.from(countryMap.entries()).map(([name, value]) => {
+  // 国家名称映射函数 - 将数据库中的名称映射到地图标准名称
+  const mapCountryName = (name) => {
     // 提取国家名称（去掉emoji和多余空格）
     const cleanName = name.replace(/[\u{1F1E6}-\u{1F1FF}]/gu, '').trim();
-    return { name: cleanName, value: value };
+
+    // 中文到地图名称的映射表
+    const nameMap = {
+      '中国大陆': '中国',
+      '中国香港': '香港',
+      '中国澳门': '澳门',
+      '中国台湾': '台湾',
+      '美国': '美国',
+      '日本': '日本',
+      '韩国': '韩国',
+      '新加坡': '新加坡',
+      '英国': '英国',
+      '德国': '德国',
+      '法国': '法国',
+      '加拿大': '加拿大',
+      '澳大利亚': '澳大利亚',
+      '俄罗斯': '俄罗斯',
+      '印度': '印度',
+      '巴西': '巴西',
+      '荷兰': '荷兰',
+      '意大利': '意大利',
+      '西班牙': '西班牙',
+      // 可根据需要继续添加更多映射
+    };
+
+    return nameMap[cleanName] || cleanName;
+  };
+
+  // 转换为 ECharts 需要的数据格式
+  const mapData = Array.from(countryMap.entries()).map(([name, value]) => {
+    const mappedName = mapCountryName(name);
+    return { name: mappedName, value: value };
   });
 
   const isDark = document.body.getAttribute('data-theme') === 'dark';
@@ -2135,9 +2169,12 @@ function renderServerMapChart(){
     ]
   };
 
-  // 需要先注册世界地图
-  fetch('https://cdn.jsdelivr.net/npm/echarts@5.4.3/map/json/world.json')
-    .then(response => response.json())
+  // 需要先注册世界地图 - 使用阿里云 DataV 的 GeoJSON 数据
+  fetch('https://geo.datav.aliyun.com/areas_v3/bound/world.json')
+    .then(response => {
+      if(!response.ok) throw new Error('地图数据加载失败: HTTP ' + response.status);
+      return response.json();
+    })
     .then(worldJson => {
       echarts.registerMap('world', worldJson);
       myChart.setOption(option);
@@ -3032,7 +3069,7 @@ body[data-theme="dark"] .stat-card.stat-today .stat-value{ color: #0A84FF; }
 
 /* ========== 表单元素 ========== */
 input, textarea, select{
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: #1d1d1f;
@@ -3047,27 +3084,41 @@ input, textarea, select{
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
 }
 select{
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231d1d1f' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%231d1d1f' stroke='%231d1d1f' stroke-width='0.5' d='M7 10L2 5h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
+  background-size: 12px;
   padding-right: 40px;
   cursor: pointer;
 }
 optgroup{
   font-weight: 600;
-  color: #86868b;
+  color: #6b6b6f;
   font-size: 14px;
-  padding: 8px 12px;
-  background: rgba(245, 245, 247, 0.5);
+  padding: 10px 14px;
+  background: #f5f5f7;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
 }
 option{
-  padding: 8px 12px;
+  padding: 10px 14px;
   color: #1d1d1f;
   background: #ffffff;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 14.5px;
+  font-weight: 400;
+  line-height: 1.6;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+  letter-spacing: 0.01em;
+}
+option:hover,
+option:focus{
+  background: #f5f5f7;
+  color: #000000;
 }
 input:hover, textarea:hover, select:hover{
   border-color: #86868b;
@@ -3114,33 +3165,49 @@ input.success, textarea.success, select.success{
 body[data-theme="dark"] input,
 body[data-theme="dark"] textarea,
 body[data-theme="dark"] select{
-  background: rgba(44, 44, 46, 0.9);
+  background: rgba(44, 44, 46, 0.95);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: #f5f5f7;
   border-color: rgba(56, 56, 58, 0.8);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
 }
 body[data-theme="dark"] select{
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f5f5f7' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%23f5f5f7' stroke='%23f5f5f7' stroke-width='0.5' d='M7 10L2 5h10z'/%3E%3C/svg%3E");
+  background-size: 12px;
 }
 body[data-theme="dark"] optgroup{
-  color: #98989d;
-  background: rgba(28, 28, 30, 0.8);
+  color: #d1d1d6;
+  background: #1c1c1e;
   font-size: 14px;
-  padding: 8px 12px;
+  font-weight: 600;
+  padding: 10px 14px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+  border: none;
 }
 body[data-theme="dark"] option{
   color: #f5f5f7;
-  background: rgba(44, 44, 46, 0.95);
-  font-size: 14px;
-  padding: 8px 12px;
-  line-height: 1.5;
+  background: #2c2c2e;
+  font-size: 14.5px;
+  font-weight: 400;
+  padding: 10px 14px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+  letter-spacing: 0.01em;
+}
+body[data-theme="dark"] option:hover,
+body[data-theme="dark"] option:focus{
+  background: #3a3a3c;
+  color: #ffffff;
 }
 body[data-theme="dark"] input:hover,
 body[data-theme="dark"] textarea:hover,
@@ -3351,12 +3418,15 @@ body[data-theme="dark"] .btn-danger:hover{
 
 /* ========== 卡片展开/收起 ========== */
 .expandable {
-  max-height: 0;
+  max-height: 0 !important;
   overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  opacity: 0;
 }
-.expandable.expanded {
-  max-height: 2000px;
+.server-list {
+  max-height: none;
+  opacity: 1;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 }
 
 /* ========== 链接样式 ========== */
