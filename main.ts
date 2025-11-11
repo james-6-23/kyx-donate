@@ -909,114 +909,140 @@ function statusCls(s){ return s==='active'?'badge-ok':(s==='failed'?'badge-fail'
 function renderLeaderboard(){
   const box = document.getElementById('leaderboard');
   const countEl = document.getElementById('leaderboard-count');
-  
+
   countEl.textContent = allLeaderboardData.length ? ('共 '+allLeaderboardData.length+' 位投喂者') : '';
-  
+
   if(!allLeaderboardData.length){
     box.innerHTML='<div class="muted text-sm py-8 text-center">暂时还没有投喂记录</div>';
     return;
   }
-  
+
   box.innerHTML='';
-  allLeaderboardData.forEach((it,idx)=>{
-    const wrap=document.createElement('div');
-    wrap.className='card border transition-all animate-slide-in';
-    wrap.style.animationDelay = (idx * 0.05) + 's';
-    const cardId = 'card-'+idx;
-    const isExpanded = localStorage.getItem(cardId) !== 'collapsed';
 
-    const head=document.createElement('div');
-    head.className='flex items-center justify-between p-5 pb-4 border-b gap-4 bg-gradient-to-r cursor-pointer';
-    
-    let gradientClass = '';
-    if(idx === 0) gradientClass = 'from-amber-500/5 to-transparent';
-    else if(idx === 1) gradientClass = 'from-slate-400/5 to-transparent';
-    else if(idx === 2) gradientClass = 'from-orange-600/5 to-transparent';
-    head.className += ' ' + gradientClass;
-    
-    const badge=getBadge(it.count);
-    head.innerHTML='<div class="flex items-center gap-4 flex-1 min-w-0">'+
-      '<div class="flex-shrink-0 w-12 h-12 flex items-center justify-center text-3xl">'+medalByRank(idx)+'</div>'+
-      '<div class="flex flex-col gap-1.5 min-w-0">'+
-        '<a class="font-bold text-xl hover:opacity-80 truncate transition-colors" target="_blank" href="https://linux.do/u/'+encodeURIComponent(it.username)+'" onclick="event.stopPropagation()">@'+it.username+'</a>'+
-        '<div class="flex items-center gap-2 flex-wrap">'+
-          renderBadge(badge)+
-          '<span class="text-xs muted">共投喂 '+it.count+' 台服务器</span>'+
-        '</div>'+
-      '</div>'+
-      '</div>'+
-      '<div class="flex items-center gap-3">'+
-        '<div class="flex-shrink-0 flex items-center justify-center w-16 h-16 panel border rounded-2xl">'+
-          '<div class="text-center">'+
-            '<div class="font-bold text-2xl leading-none mb-1">'+it.count+'</div>'+
-            '<div class="text-xs muted leading-none">VPS</div>'+
+  // 性能优化：使用 DocumentFragment 批量插入
+  const fragment = document.createDocumentFragment();
+
+  // 性能优化：分批渲染，避免一次性渲染过多元素导致卡顿
+  const renderBatch = (startIdx, batchSize) => {
+    const endIdx = Math.min(startIdx + batchSize, allLeaderboardData.length);
+
+    for(let idx = startIdx; idx < endIdx; idx++){
+      const it = allLeaderboardData[idx];
+      const wrap=document.createElement('div');
+      wrap.className='card border transition-all animate-slide-in';
+      wrap.style.animationDelay = (idx * 0.05) + 's';
+      const cardId = 'card-'+idx;
+      const isExpanded = localStorage.getItem(cardId) !== 'collapsed';
+
+      const head=document.createElement('div');
+      head.className='flex items-center justify-between p-5 pb-4 border-b gap-4 bg-gradient-to-r cursor-pointer';
+
+      let gradientClass = '';
+      if(idx === 0) gradientClass = 'from-amber-500/5 to-transparent';
+      else if(idx === 1) gradientClass = 'from-slate-400/5 to-transparent';
+      else if(idx === 2) gradientClass = 'from-orange-600/5 to-transparent';
+      head.className += ' ' + gradientClass;
+
+      const badge=getBadge(it.count);
+      head.innerHTML='<div class="flex items-center gap-4 flex-1 min-w-0">'+
+        '<div class="flex-shrink-0 w-12 h-12 flex items-center justify-center text-3xl">'+medalByRank(idx)+'</div>'+
+        '<div class="flex flex-col gap-1.5 min-w-0">'+
+          '<a class="font-bold text-xl hover:opacity-80 truncate transition-colors" target="_blank" href="https://linux.do/u/'+encodeURIComponent(it.username)+'" onclick="event.stopPropagation()">@'+it.username+'</a>'+
+          '<div class="flex items-center gap-2 flex-wrap">'+
+            renderBadge(badge)+
+            '<span class="text-xs muted">共投喂 '+it.count+' 台服务器</span>'+
           '</div>'+
         '</div>'+
-        '<button class="toggle-expand flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg panel border hover:bg-sky-500/10 transition-all" data-card="'+cardId+'" onclick="event.stopPropagation()" title="'+(isExpanded ? '收起列表' : '展开列表')+'">'+
-          '<span class="text-lg transition-transform duration-300 '+(isExpanded ? 'rotate-0' : '-rotate-90')+'">'+'▼'+'</span>'+
-        '</button>'+
-      '</div>';
-    
-    head.onclick = () => {
-      const listEl = wrap.querySelector('.server-list');
-      const toggleBtn = wrap.querySelector('.toggle-expand');
-      const toggleIcon = toggleBtn.querySelector('span');
-      const isCurrentlyExpanded = !listEl.classList.contains('expandable');
+        '</div>'+
+        '<div class="flex items-center gap-3">'+
+          '<div class="flex-shrink-0 flex items-center justify-center w-16 h-16 panel border rounded-2xl">'+
+            '<div class="text-center">'+
+              '<div class="font-bold text-2xl leading-none mb-1">'+it.count+'</div>'+
+              '<div class="text-xs muted leading-none">VPS</div>'+
+            '</div>'+
+          '</div>'+
+          '<button class="toggle-expand flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg panel border hover:bg-sky-500/10 transition-all" data-card="'+cardId+'" title="'+(isExpanded ? '收起列表' : '展开列表')+'">'+
+            '<span class="text-lg transition-transform duration-300 '+(isExpanded ? 'rotate-0' : '-rotate-90')+'">'+'▼'+'</span>'+
+          '</button>'+
+        '</div>';
 
-      if(isCurrentlyExpanded){
-        // 收起
-        listEl.classList.add('expandable');
-        toggleIcon.classList.remove('rotate-0');
-        toggleIcon.classList.add('-rotate-90');
-        toggleBtn.setAttribute('title', '展开列表');
-        localStorage.setItem(cardId, 'collapsed');
-      } else {
-        // 展开
-        listEl.classList.remove('expandable');
-        toggleIcon.classList.remove('-rotate-90');
-        toggleIcon.classList.add('rotate-0');
-        toggleBtn.setAttribute('title', '收起列表');
-        localStorage.removeItem(cardId);
+      // 统一的切换函数
+      const toggleExpand = (e) => {
+        if(e) e.stopPropagation();
+        const listEl = wrap.querySelector('.server-list');
+        const toggleBtn = wrap.querySelector('.toggle-expand');
+        const toggleIcon = toggleBtn.querySelector('span');
+        const isCurrentlyExpanded = !listEl.classList.contains('expandable');
+
+        if(isCurrentlyExpanded){
+          // 收起
+          listEl.classList.add('expandable');
+          toggleIcon.classList.remove('rotate-0');
+          toggleIcon.classList.add('-rotate-90');
+          toggleBtn.setAttribute('title', '展开列表');
+          localStorage.setItem(cardId, 'collapsed');
+        } else {
+          // 展开
+          listEl.classList.remove('expandable');
+          toggleIcon.classList.remove('-rotate-90');
+          toggleIcon.classList.add('rotate-0');
+          toggleBtn.setAttribute('title', '收起列表');
+          localStorage.removeItem(cardId);
+        }
+      };
+
+      // 修复：给三角形按钮添加独立的点击事件
+      head.onclick = toggleExpand;
+
+      wrap.appendChild(head);
+
+      const list=document.createElement('div');
+      list.className='server-list px-5 pb-5 pt-4 space-y-3';
+      if(!isExpanded){
+        list.classList.add('expandable');
       }
-    };
-    
-    wrap.appendChild(head);
-
-    const list=document.createElement('div');
-    list.className='server-list px-5 pb-5 pt-4 space-y-3';
-    if(!isExpanded){
-      list.classList.add('expandable');
-    }
-    (it.servers||[]).forEach(srv=>{
-      const d=document.createElement('div');
-      d.className='panel border rounded-xl p-4 transition-all hover:shadow-sm';
-      d.innerHTML = '<div class="flex items-start justify-between gap-3 mb-3">'+
-        '<div class="flex items-center gap-2.5 flex-1 min-w-0">'+
-          '<span class="text-xl flex-shrink-0">🌍</span>'+
-          '<div class="flex flex-col gap-1 min-w-0">'+
-            '<span class="font-semibold text-sm truncate">'+(srv.country||'未填写')+'</span>'+
-            (srv.ipLocation?'<span class="text-xs muted truncate">'+srv.ipLocation+'</span>':'')+
+      (it.servers||[]).forEach(srv=>{
+        const d=document.createElement('div');
+        d.className='panel border rounded-xl p-4 transition-all hover:shadow-sm';
+        d.innerHTML = '<div class="flex items-start justify-between gap-3 mb-3">'+
+          '<div class="flex items-center gap-2.5 flex-1 min-w-0">'+
+            '<span class="text-xl flex-shrink-0">🌍</span>'+
+            '<div class="flex flex-col gap-1 min-w-0">'+
+              '<span class="font-semibold text-sm truncate">'+(srv.country||'未填写')+'</span>'+
+              (srv.ipLocation?'<span class="text-xs muted truncate">'+srv.ipLocation+'</span>':'')+
+            '</div>'+
+          '</div>'+
+          '<span class="'+statusCls(srv.status)+' text-xs px-2.5 py-1 rounded-full font-semibold flex-shrink-0">'+statusText(srv.status)+'</span>'+
+        '</div>'+
+        '<div class="grid grid-cols-2 gap-3 text-sm">'+
+          '<div class="flex items-center gap-2 panel border rounded-lg px-3 py-2">'+
+            '<span class="opacity-60">📊</span>'+
+            '<span class="truncate font-medium">'+(srv.traffic||'未填写')+'</span>'+
+          '</div>'+
+          '<div class="flex items-center gap-2 panel border rounded-lg px-3 py-2">'+
+            '<span class="opacity-60">📅</span>'+
+            '<span class="truncate font-medium">'+(srv.expiryDate||'未填写')+'</span>'+
           '</div>'+
         '</div>'+
-        '<span class="'+statusCls(srv.status)+' text-xs px-2.5 py-1 rounded-full font-semibold flex-shrink-0">'+statusText(srv.status)+'</span>'+
-      '</div>'+
-      '<div class="grid grid-cols-2 gap-3 text-sm">'+
-        '<div class="flex items-center gap-2 panel border rounded-lg px-3 py-2">'+
-          '<span class="opacity-60">📊</span>'+
-          '<span class="truncate font-medium">'+(srv.traffic||'未填写')+'</span>'+
-        '</div>'+
-        '<div class="flex items-center gap-2 panel border rounded-lg px-3 py-2">'+
-          '<span class="opacity-60">📅</span>'+
-          '<span class="truncate font-medium">'+(srv.expiryDate||'未填写')+'</span>'+
-        '</div>'+
-      '</div>'+
-      (srv.specs?'<div class="text-sm mt-3 panel border rounded-lg px-3 py-2.5 flex items-start gap-2"><span class="opacity-60 text-base">⚙️</span><span class="flex-1">'+srv.specs+'</span></div>':'')+
-      (srv.note?'<div class="text-sm mt-3 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2.5 flex items-start gap-2"><span class="opacity-60 text-base">💬</span><span class="flex-1">'+srv.note+'</span></div>':'');
-      list.appendChild(d);
-    });
-    wrap.appendChild(list);
-    box.appendChild(wrap);
-  });
+        (srv.specs?'<div class="text-sm mt-3 panel border rounded-lg px-3 py-2.5 flex items-start gap-2"><span class="opacity-60 text-base">⚙️</span><span class="flex-1">'+srv.specs+'</span></div>':'')+
+        (srv.note?'<div class="text-sm mt-3 bg-amber-500/5 border border-amber-500/20 rounded-lg px-3 py-2.5 flex items-start gap-2"><span class="opacity-60 text-base">💬</span><span class="flex-1">'+srv.note+'</span></div>':'');
+        list.appendChild(d);
+      });
+      wrap.appendChild(list);
+      fragment.appendChild(wrap);
+    }
+
+    // 批量插入DOM
+    box.appendChild(fragment.cloneNode(true));
+
+    // 如果还有更多数据，继续渲染下一批
+    if(endIdx < allLeaderboardData.length){
+      requestAnimationFrame(() => renderBatch(endIdx, batchSize));
+    }
+  };
+
+  // 开始分批渲染，每批10个
+  renderBatch(0, 10);
 }
 
 async function loadLeaderboard(){
