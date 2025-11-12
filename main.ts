@@ -469,6 +469,16 @@ app.post('/api/donate', requireAuth, async c => {
   // ✅ 新增：统一把 IP 做 trim，去掉复制带来的空格/换行
   const ipClean = String(ip).trim();
 
+  // 🔍 调试日志：查看收到的IP值
+  console.log('===== IP验证调试 =====');
+  console.log('原始IP值:', JSON.stringify(ip));
+  console.log('IP类型:', typeof ip);
+  console.log('清理后IP:', JSON.stringify(ipClean));
+  console.log('IPv4验证:', isIPv4(ipClean));
+  console.log('IPv6验证:', isIPv6(ipClean));
+  console.log('最终验证结果:', isValidIP(ipClean));
+  console.log('====================');
+
   // ✅ 下面开始都用 ipClean
   if (!isValidIP(ipClean)) {
     return c.json({ success: false, message: 'IP 格式不正确' }, 400);
